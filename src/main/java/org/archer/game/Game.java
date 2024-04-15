@@ -26,8 +26,9 @@ public class Game {
     private VBox shooterPane; // Pane со стрелками
     private boolean isShooting = false;
 
-    private ArrayList<Arrow> arrows;
+    private final ArrayList<Arrow> arrows;
     public byte ARROW_SPEED = 5; // на сколько пикселей сдвинется стрела в единицу времени
+    public byte ARROW_LENGTH = 60; // длина стрелы в пикселях
 
     public Game() {
         gameStatus = GameStatus.Stopped;
@@ -45,7 +46,6 @@ public class Game {
     }
 
     public void StartGame(){
-//        isPaused = false;
         if (gameStatus != GameStatus.Stopped) {
             score.setScore(0);
             score.setShotCount(0);
@@ -65,9 +65,7 @@ public class Game {
                } catch (InterruptedException e) {
 //                   throw new RuntimeException(e);
                    // Игра остановлена, значит нужно поставить на стартовые позиции мишени
-//                   targets.getNearTargetCircle().setLayoutY(mainField.getHeight() / 2);
-//                   targets.getDistantTargetCircle().setLayoutY(mainField.getHeight() / 2);
-                   SetStartData();
+                   Platform.runLater(this::SetStartData);
                }
             });
             movingThread.setDaemon(true);
@@ -86,21 +84,14 @@ public class Game {
     public void StopGame() {
         if (gameStatus != GameStatus.Stopped) {
             threadManager.do_notify();
-            if (arrows != null) {
-                arrows.forEach(arrow -> {
-                    mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead());
-                });
+//            if (arrows != null) {
+                arrows.forEach(arrow -> mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead()));
                 arrows.clear();
-            }
+//            }
             if (movingThread != null)
                 movingThread.interrupt();
             movingThread = null;
-//
-//            score.setScore(0);
-//            score.setShotCount(0);
-//
-//            gameStatus = GameStatus.Stopped;
-            SetStartData();
+            Platform.runLater(this::SetStartData);
         }
     }
 
@@ -116,7 +107,7 @@ public class Game {
         isShooting = true;
         score.setShotCount(score.getShotCount() + 1);
 
-        Arrow arrow = new Arrow(shooterPane.getWidth() + 60, mainField.getHeight() / 2, 60); // 60 - arrow's length
+        Arrow arrow = new Arrow(shooterPane.getWidth() + ARROW_LENGTH, mainField.getHeight() / 2, ARROW_LENGTH);
         arrows.add(arrow);
 
         mainWindow.getChildren().addAll(arrow.getArrowShaft(), arrow.getArrowHead()); // Отображение стрелы
@@ -130,22 +121,20 @@ public class Game {
             Arrow arrow = iterator.next();
 
             arrow.moving(ARROW_SPEED);
-//            if (arrow.getArrowShaft().getEndX() + targets.getNearTargetCircle().getRadius() + ARROW_SPEED >= targets.getNearTargetCircle().getLayoutX()) {
-                double nearCircleDistance = GetCircleDistance(targets.getNearTargetCircle(), arrow);
-                double farthestCircleDistance = GetCircleDistance(targets.getDistantTargetCircle(), arrow);
-                if (nearCircleDistance <= targets.getNearTargetCircle().getRadius() || farthestCircleDistance <= targets.getDistantTargetCircle().getRadius() || arrow.getArrowShaft().getStartX() > score.getScorePane().getLayoutX()) {
-                    mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead());
-                    if (nearCircleDistance < farthestCircleDistance && nearCircleDistance <= targets.getNearTargetCircle().getRadius())
-                        score.setScore(score.getScore() + 1);
-                    else if (farthestCircleDistance <= targets.getDistantTargetCircle().getRadius())
-                        score.setScore(score.getScore() + 2);
-                    iterator.remove();
-                } else if (arrow.getArrowShaft().getEndX() >= score.getScorePane().getLayoutX()) {
-                    arrow.getArrowShaft().setEndX(arrow.getArrowShaft().getEndX() - ARROW_SPEED);
-                    arrow.getArrowHead().setStroke(Color.TRANSPARENT); // Прозрачность контура
-                    arrow.getArrowHead().setFill(Color.TRANSPARENT); // Прозрачность заливки
-                }
-//            }
+            double nearCircleDistance = GetCircleDistance(targets.getNearTargetCircle(), arrow);
+            double farthestCircleDistance = GetCircleDistance(targets.getDistantTargetCircle(), arrow);
+            if (nearCircleDistance <= targets.getNearTargetCircle().getRadius() || farthestCircleDistance <= targets.getDistantTargetCircle().getRadius() || arrow.getArrowShaft().getStartX() > score.getScorePane().getLayoutX()) {
+                mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead());
+                if (nearCircleDistance < farthestCircleDistance && nearCircleDistance <= targets.getNearTargetCircle().getRadius())
+                    score.setScore(score.getScore() + 1);
+                else if (farthestCircleDistance <= targets.getDistantTargetCircle().getRadius())
+                    score.setScore(score.getScore() + 2);
+                iterator.remove();
+            } else if (arrow.getArrowShaft().getEndX() >= score.getScorePane().getLayoutX()) {
+                arrow.getArrowShaft().setEndX(arrow.getArrowShaft().getEndX() - ARROW_SPEED);
+                arrow.getArrowHead().setStroke(Color.TRANSPARENT); // Прозрачность контура
+                arrow.getArrowHead().setFill(Color.TRANSPARENT); // Прозрачность заливки
+            }
         }
     }
 
