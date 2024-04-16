@@ -2,10 +2,10 @@ package org.archer.game;
 
 import javafx.application.Platform;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
 import org.archer.elements.Arrow;
 import org.archer.elements.GameStatus;
 import org.archer.elements.Score;
@@ -23,19 +23,19 @@ public class Game {
 
     private AnchorPane mainWindow; // Основное окно
     private AnchorPane mainField; // Поле, где летают стрелы и мишени
-    private VBox shooterPane; // Pane со стрелками
-    private boolean isShooting = false;
+    private AnchorPane shooterPane; // Pane со стрелками
+    private Polygon shooter;
 
     private final ArrayList<Arrow> arrows;
-    public byte ARROW_SPEED = 5; // на сколько пикселей сдвинется стрела в единицу времени
-    public byte ARROW_LENGTH = 60; // длина стрелы в пикселях
+    final public byte ARROW_SPEED = 5; // на сколько пикселей сдвинется стрела в единицу времени
+    final public byte ARROW_LENGTH = 60; // длина стрелы в пикселях
 
     public Game() {
         gameStatus = GameStatus.Stopped;
         threadManager = new Thread_manager();
         arrows = new ArrayList<>(5);
     }
-    public void initialize(AnchorPane mainWindow, AnchorPane mainField, VBox shooterPane, Line nearTargetLine, Line distantTargetLine, Targets targets, Score score) {
+    public void initialize(AnchorPane mainWindow, AnchorPane mainField, AnchorPane shooterPane, Line nearTargetLine, Line distantTargetLine, Targets targets, Score score) {
         nearTargetLine.endYProperty().bind(mainField.heightProperty()); // Привязка конечной координаты Y к высоте AnchorPane
         distantTargetLine.endYProperty().bind(mainField.heightProperty());
         this.score = score;
@@ -75,7 +75,6 @@ public class Game {
     private void MovingGame() {
         Platform.runLater(() -> {
             if (!arrows.isEmpty()) {
-                isShooting = false;
                 ArrowMovement();
             }
             targets.moving();
@@ -84,10 +83,8 @@ public class Game {
     public void StopGame() {
         if (gameStatus != GameStatus.Stopped) {
             threadManager.do_notify();
-//            if (arrows != null) {
                 arrows.forEach(arrow -> mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead()));
                 arrows.clear();
-//            }
             if (movingThread != null)
                 movingThread.interrupt();
             movingThread = null;
@@ -104,17 +101,18 @@ public class Game {
     }
     public void Shot() {
         if (gameStatus != GameStatus.Started) return;
-        isShooting = true;
         score.setShotCount(score.getShotCount() + 1);
 
-        Arrow arrow = new Arrow(shooterPane.getWidth() + ARROW_LENGTH, mainField.getHeight() / 2, ARROW_LENGTH);
+        double y_arrow = mainField.getHeight() / 2; // Положение стрелы на оси ОУ
+        if (shooter != null)
+            y_arrow = shooter.getLayoutY();
+        Arrow arrow = new Arrow(shooterPane.getWidth() + ARROW_LENGTH, y_arrow, ARROW_LENGTH);
         arrows.add(arrow);
 
         mainWindow.getChildren().addAll(arrow.getArrowShaft(), arrow.getArrowHead()); // Отображение стрелы
     }
 
     private void ArrowMovement() {
-        isShooting = false;
         Iterator< Arrow > iterator = arrows.iterator();
 
         while (iterator.hasNext()) {
@@ -152,6 +150,20 @@ public class Game {
         score.setShotCount(0);
         score.setScore(0);
 
+        if (shooter != null)
+            shooter.setLayoutY(shooterPane.getHeight() / 2);
+
         gameStatus = GameStatus.Stopped;
+    }
+
+    public void ShooterChangePosition(double y, Polygon shooter) {
+        if (this.shooter == null) this.shooter = shooter;
+        double shooterHeight = shooter.getPoints().get(1) - shooter.getPoints().get(5);
+        if (y <= shooterPane.getHeight() - shooterHeight && y >= shooterHeight)
+            shooter.setLayoutY(y);
+        else if (y < shooterHeight)
+            shooter.setLayoutY(shooterHeight / 2);
+        else
+            shooter.setLayoutY(shooterPane.getHeight() - shooterHeight / 2);
     }
 }
