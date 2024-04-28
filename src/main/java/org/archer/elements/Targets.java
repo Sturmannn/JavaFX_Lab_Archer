@@ -4,10 +4,10 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
 public class Targets {
-    private Line nearTargetLine;
-    private Line distantTargetLine;
-    private Circle nearTargetCircle;
-    private Circle distantTargetCircle;
+    private final Line nearTargetLine;
+    private final Line distantTargetLine;
+    private final Circle nearTargetCircle;
+    private final Circle distantTargetCircle;
     final private byte NEAR_TARGET_SPEED = 1;
     final private byte DISTANT_TARGET_SPEED = NEAR_TARGET_SPEED * 2;
     private final boolean[] nearCircleDirection = {
