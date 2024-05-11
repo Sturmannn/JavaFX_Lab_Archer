@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.archer.ConnectController">
+
+    <VBox alignment="CENTER" layoutX="225.0" layoutY="150.0" spacing="20.0">
+        <TextField fx:id="nicknameField" onAction="#connect" promptText="Enter your nickname" />
+        <Button fx:id="connectButton" onAction="#connect" text="Connect" />
+    </VBox>
+
+</AnchorPane>

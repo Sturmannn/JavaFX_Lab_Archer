@@ -7,12 +7,14 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class GameApplication extends Application {
+public class MainClientGameApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(GameApplication.class.getResource("main_field.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 700, 400);
+        FXMLLoader fxmlLoader = new FXMLLoader(MainClientGameApp.class.getResource("connect-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 600, 400);
+//        Scene scene = new Scene(fxmlLoader.load(), 700, 400);
         stage.setTitle("Archer");
+        stage.setResizable(false);
         stage.setScene(scene);
         stage.show();
     }

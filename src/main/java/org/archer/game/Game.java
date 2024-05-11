@@ -1,169 +1,196 @@
 package org.archer.game;
 
-import javafx.application.Platform;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
-import org.archer.elements.Arrow;
-import org.archer.elements.GameStatus;
-import org.archer.elements.Score;
-import org.archer.elements.Targets;
+import org.archer.elements.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Game {
-    private GameStatus gameStatus;
-    private Score score; // счёт игры
-    private Targets targets;
+    private final Model model;
     private static Thread movingThread;
-    final private Thread_manager threadManager;
-
-    private AnchorPane mainWindow; // Основное окно
-    private AnchorPane mainField; // Поле, где летают стрелы и мишени
-    private AnchorPane shooterPane; // Pane со стрелками
-    private Polygon shooter;
-
-    private final ArrayList<Arrow> arrows;
+    private static Thread_manager threadManager;
+    SocketServerWrapper socketServer;
     final public byte ARROW_SPEED = 5; // на сколько пикселей сдвинется стрела в единицу времени
     final public byte ARROW_LENGTH = 60; // длина стрелы в пикселях
 
-    public Game() {
-        gameStatus = GameStatus.Stopped;
+    public Game(Model model, SocketServerWrapper socketServer) {
+        this.model = model;
+        model.setGameStatus(GameStatus.Stopped);
         threadManager = new Thread_manager();
-        arrows = new ArrayList<>(5);
+        this.socketServer = socketServer;
     }
     public void initialize(AnchorPane mainWindow, AnchorPane mainField, AnchorPane shooterPane, Line nearTargetLine, Line distantTargetLine, Targets targets, Score score) {
         nearTargetLine.endYProperty().bind(mainField.heightProperty()); // Привязка конечной координаты Y к высоте AnchorPane
         distantTargetLine.endYProperty().bind(mainField.heightProperty());
-        this.score = score;
-        this.targets = targets;
-        this.shooterPane = shooterPane;
-        this.mainField = mainField;
-        this.mainWindow = mainWindow;
+//        this.score = score;
+//        this.targets = targets;
+//        this.shooterPane = shooterPane;
+//        this.mainField = mainField;
+//        this.mainWindow = mainWindow;
     }
-
+    public Game getGame() {
+        return this;
+    }
     public void StartGame(){
-        if (gameStatus != GameStatus.Stopped) {
-            score.setScore(0);
-            score.setShotCount(0);
+        if (model.getGameStatus() != GameStatus.Stopped) {
+            model.getArchers().forEach(Archer::resetScore);
         } else {
-            gameStatus = GameStatus.Started;
+            model.setGameStatus(GameStatus.Started);
             if (movingThread != null) return;
             movingThread = new Thread(() -> {
                try {
-                   while (gameStatus != GameStatus.Stopped) {
-                       if (gameStatus == GameStatus.Paused) {
+                   while (model.getGameStatus() != GameStatus.Stopped) {
+                       if (model.getGameStatus() == GameStatus.Paused) {
                            threadManager.do_wait();
-                           gameStatus = GameStatus.Started;
+                           model.setGameStatus(GameStatus.Started);
                        }
                        MovingGame();
+
+                       model.notifyObservers();
+
                        Thread.sleep(10);
                    }
                } catch (InterruptedException e) {
-//                   throw new RuntimeException(e);
                    // Игра остановлена, значит нужно поставить на стартовые позиции мишени
-                   Platform.runLater(this::SetStartData);
+                   SetStartData();
                }
             });
             movingThread.setDaemon(true);
             movingThread.start();
         }
     }
+
+    // Перемещение мишеней за единицу времени
     private void MovingGame() {
-        Platform.runLater(() -> {
-            if (!arrows.isEmpty()) {
-                ArrowMovement();
-            }
-            targets.moving();
-        });
+        synchronized (threadManager) {
+            model.getArchers().forEach(archer -> {
+                if (!archer.getArrows().isEmpty()) {
+                    checkHit(archer);
+                }
+            });
+        }
+        model.getTargets().moving();
     }
+    // Остановка игры
     public void StopGame() {
-        if (gameStatus != GameStatus.Stopped) {
+        if (model.getGameStatus() != GameStatus.Stopped) {
             threadManager.do_notify();
-                arrows.forEach(arrow -> mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead()));
-                arrows.clear();
+            model.getArchers().forEach(Archer::cleanup);
             if (movingThread != null)
                 movingThread.interrupt();
             movingThread = null;
-            Platform.runLater(this::SetStartData);
+            SetStartData();
         }
     }
-
+    // Пауза игры
     public void Pause() {
-        if (gameStatus == GameStatus.Started) gameStatus = GameStatus.Paused;
-        else if (gameStatus == GameStatus.Paused) {
+        if (model.getGameStatus() == GameStatus.Started) model.setGameStatus(GameStatus.Paused);
+        else if (model.getGameStatus() == GameStatus.Paused) {
             threadManager.do_notify();
-            gameStatus = GameStatus.Started;
+            model.setGameStatus(GameStatus.Started);
         }
     }
-    public void Shot() {
-        if (gameStatus != GameStatus.Started) return;
-        score.setShotCount(score.getShotCount() + 1);
+    // Выстрел
+    public void Shot(int index) {
+        if (model.getGameStatus() != GameStatus.Started) return;
+        synchronized (model.getArchers()){
+            model.getArcher(index).getScore().setShotCount(model.getArcher(index).getScore().getShotCount() + 1);
+        }
 
-        double y_arrow = mainField.getHeight() / 2; // Положение стрелы на оси ОУ
-        if (shooter != null)
-            y_arrow = shooter.getLayoutY();
-        Arrow arrow = new Arrow(shooterPane.getWidth() + ARROW_LENGTH, y_arrow, ARROW_LENGTH);
-        arrows.add(arrow);
+        double y_arrow = model.getArcher(index).getLayoutY();
 
-        mainWindow.getChildren().addAll(arrow.getArrowShaft(), arrow.getArrowHead()); // Отображение стрелы
+//        if (model.getArcher(index) != null)
+//            y_arrow = model.getArcher(index).getLayoutY();
+        Arrow arrow = new Arrow(ARROW_LENGTH, y_arrow, model.getArcher(0).getLayoutY(), "black");
+        synchronized (model.getArcher(index).getArrows()) {
+            model.getArcher(index).addArrow(arrow);
+        }
     }
+    private void checkHit(Archer archer) {
+        List<Arrow> arrowsToRemove = new ArrayList<>();
+        synchronized (threadManager) {
+            for (Arrow arrow : archer.getArrows()) {
+                arrow.moving(ARROW_SPEED);
+                double nearCircleDistance = GetCircleDistance(model.getTargets().getNearTargetCircle(), arrow);
+                double farthestCircleDistance = GetCircleDistance(model.getTargets().getDistantTargetCircle(), arrow);
 
-    private void ArrowMovement() {
-        Iterator< Arrow > iterator = arrows.iterator();
+                if (nearCircleDistance < farthestCircleDistance && nearCircleDistance <= model.getTargets().getNearTargetCircle().getRadius()) {
+                    archer.getScore().setPoints(archer.getScore().getPoints() + 1);
+                    arrowsToRemove.add(arrow);
+                }
+                if (farthestCircleDistance <= model.getTargets().getDistantTargetCircle().getRadius()) {
+                    archer.getScore().setPoints(archer.getScore().getPoints() + 2);
+                    arrowsToRemove.add(arrow);
+                }
+                if (arrow.getArrowShaft().getStartX() > model.getMainFieldSize().getX())
+                    arrowsToRemove.add(arrow);
 
-        while (iterator.hasNext()) {
-            Arrow arrow = iterator.next();
-
-            arrow.moving(ARROW_SPEED);
-            double nearCircleDistance = GetCircleDistance(targets.getNearTargetCircle(), arrow);
-            double farthestCircleDistance = GetCircleDistance(targets.getDistantTargetCircle(), arrow);
-            if (nearCircleDistance <= targets.getNearTargetCircle().getRadius() || farthestCircleDistance <= targets.getDistantTargetCircle().getRadius() || arrow.getArrowShaft().getStartX() > score.getScorePane().getLayoutX()) {
-                mainWindow.getChildren().removeAll(arrow.getArrowShaft(), arrow.getArrowHead());
-                if (nearCircleDistance < farthestCircleDistance && nearCircleDistance <= targets.getNearTargetCircle().getRadius())
-                    score.setScore(score.getScore() + 1);
-                else if (farthestCircleDistance <= targets.getDistantTargetCircle().getRadius())
-                    score.setScore(score.getScore() + 2);
-                iterator.remove();
-            } else if (arrow.getArrowShaft().getEndX() >= score.getScorePane().getLayoutX()) {
-                arrow.getArrowShaft().setEndX(arrow.getArrowShaft().getEndX() - ARROW_SPEED);
-                arrow.getArrowHead().setStroke(Color.TRANSPARENT); // Прозрачность контура
-                arrow.getArrowHead().setFill(Color.TRANSPARENT); // Прозрачность заливки
+                if (archer.getScore().getPoints() >= 2) {
+                    System.out.println(socketServer.getId() + " win");
+//                    synchronized (archer.getArrows()) {
+//                        archer.getArrows().removeAll(arrowsToRemove);
+//                    }
+                    synchronized (threadManager) {
+                        StopGame();
+                    }
+                    model.setWinner(socketServer.getId());
+//                    model.setWinner(0);
+                    return;
+                }
             }
         }
+//        synchronized (archer.getArrows()) {
+        synchronized (threadManager) {
+            archer.getArrows().removeAll(arrowsToRemove);
+        }
     }
 
-    private double GetCircleDistance(Circle circle, Arrow arrow) {
-        return Math.sqrt(Math.pow(circle.getLayoutX() + mainField.getLayoutX() - arrow.getArrowShaft().getEndX(), 2) + Math.pow(circle.getLayoutY() + mainField.getLayoutY() - arrow.getArrowShaft().getEndY(), 2));
+    // Расстояние от конца стрелы до мишени
+    private double GetCircleDistance(Serializable_Circle circle, Arrow arrow) {
+        double circleCenterX = circle.getLayoutX();
+        double circleCenterY = circle.getLayoutY();
+        double arrowEndX = arrow.getArrowShaft().getEndX();
+        double arrowEndY = arrow.getArrowShaft().getEndY();
+
+        return Math.sqrt(Math.pow(circleCenterX - arrowEndX, 2) + Math.pow(circleCenterY - arrowEndY, 2));
     }
 
+    // Установка начальных данных, например, при остановке игры
     private void SetStartData() {
-        (targets.getNearCircleDirection())[0] = true; // down
-        (targets.getDistantCircleDirection())[0] = false; // up;
+        model.getTargets().getNearCircleDirection()[0] = true; // down
+        model.getTargets().getDistantCircleDirection()[0] = false; // up;
 
-        targets.getNearTargetCircle().setLayoutY(mainField.getHeight() / 2);
-        targets.getDistantTargetCircle().setLayoutY(mainField.getHeight() / 2);
+        model.getTargets().getNearTargetCircle().setLayoutX(model.getTargets().getNearTargetLine().getLayoutX());
+        model.getTargets().getNearTargetCircle().setLayoutY(model.getMainFieldSize().getY() / 2);
+        model.getTargets().getDistantTargetCircle().setLayoutX(model.getTargets().getDistantTargetLine().getLayoutX());
+        model.getTargets().getDistantTargetCircle().setLayoutY(model.getMainFieldSize().getY() / 2);
 
-        score.setShotCount(0);
-        score.setScore(0);
+        model.getArchers().forEach(Archer::resetScore);
 
-        if (shooter != null)
-            shooter.setLayoutY(shooterPane.getHeight() / 2);
-
-        gameStatus = GameStatus.Stopped;
+        for (Archer shooter : model.getArchers()) {
+            if (shooter != null) {
+                shooter.setPosition(model.getMainFieldSize().getY() / 2);
+                shooter.setWinner(false);
+            }
+        }
+        model.setGameStatus(GameStatus.Stopped);
     }
 
-    public void ShooterChangePosition(double y, Polygon shooter) {
-        if (this.shooter == null) this.shooter = shooter;
-        double shooterHeight = shooter.getPoints().get(1) - shooter.getPoints().get(5);
-        if (y <= shooterPane.getHeight() - shooterHeight && y >= shooterHeight)
-            shooter.setLayoutY(y);
-        else if (y < shooterHeight)
-            shooter.setLayoutY(shooterHeight / 2);
+    // Изменение положения стрелка
+    public void ShooterChangePosition(Archer archer, int id) {
+        if (model.getGameStatus() != GameStatus.Started) return;
+        double y = archer.getLayoutY();
+        if (y <= model.getMainFieldSize().getY() - 30 && y >= 30)
+            model.getArcher(id).setPosition(y);
+        else if (y < 30)
+            model.getArcher(id).setPosition(30);
         else
-            shooter.setLayoutY(shooterPane.getHeight() - shooterHeight / 2);
+            model.getArcher(id).setPosition(model.getMainFieldSize().getY() - 30);
     }
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:id="mainWindow" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="700.0" style="-fx-background-color: #FFF1F1;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.archer.GameController">
+  <children>
+      <AnchorPane fx:id="shooterPane" prefHeight="336.0" prefWidth="70.0" style="-fx-background-color: yellow;" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <HBox fx:id="myHBox" alignment="CENTER" blendMode="EXCLUSION" layoutY="333.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="64.0" prefWidth="494.0" spacing="10.0" style="-fx-background-color: #AEACAC;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="160.0">
+      <children>
+        <Button fx:id="startGameButton" mnemonicParsing="false" onAction="#onStartGameButtonClick" text="Начало игры" textAlignment="CENTER">
+          <font>
+            <Font name="Droid Serif Bold" size="15.0" />
+          </font></Button>
+        <Button fx:id="stopGameButton" mnemonicParsing="false" onAction="#onStopGameButtonClick" text="Остановить игру" textAlignment="CENTER">
+          <font>
+            <Font name="Droid Serif Bold" size="15.0" />
+          </font></Button>
+        <Button fx:id="pauseButton" mnemonicParsing="false" onAction="#onPauseGameButtonClick" prefHeight="31.0" prefWidth="70.0" text="Пауза" textAlignment="CENTER">
+          <font>
+            <Font name="Droid Serif Bold" size="15.0" />
+          </font></Button>
+        <Button fx:id="shotButton" mnemonicParsing="false" onAction="#onShotButtonClick" text="Выстрел" textAlignment="CENTER">
+          <font>
+            <Font name="Droid Serif Bold" size="15.0" />
+          </font></Button>
+      </children>
+    </HBox>
+    <AnchorPane fx:id="mainField" layoutX="83.0" layoutY="2.0" onMousePressed="#shooterChangePosition" prefHeight="334.0" prefWidth="470.0" style="-fx-background-color: #FFF1F1;" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="70.0" AnchorPane.rightAnchor="160.0" AnchorPane.topAnchor="0.0" />
+    <VBox fx:id="scorePane" layoutX="544.0" layoutY="7.0" prefHeight="400.0" prefWidth="160.0" style="-fx-background-color: #F4F4F4; -fx-border-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+  </children>
+</AnchorPane>
