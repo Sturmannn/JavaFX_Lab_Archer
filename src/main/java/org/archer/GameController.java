@@ -198,7 +198,9 @@ public int connect() { // 0 - error, 1 - nickname is taken, 2 - connected, 3 - o
 
     @Override
     public void eventHandler(Model model) {
-        Platform.runLater(() -> {
+        synchronized (model) {
+            Response response = socket_client.getMessageQueue().getNextResponse();
+            Platform.runLater(() -> {
                 shooterPane.getChildren().clear();
                 mainField.getChildren().clear();
                 scorePane.getChildren().clear();
@@ -224,9 +226,20 @@ public int connect() { // 0 - error, 1 - nickname is taken, 2 - connected, 3 - o
                         alert.setHeaderText(null);
                         alert.setContentText("Winner: " + archer.getNickName());
 
-                        alert.showAndWait();
+                        alert.show();
                     }
                 }
+            });
+        }
+    }
+    public void ShowWinner(String nickName) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Over");
+            alert.setHeaderText(null);
+            alert.setContentText("Winner: " + nickName);
+
+            alert.showAndWait();
         });
     }
 }

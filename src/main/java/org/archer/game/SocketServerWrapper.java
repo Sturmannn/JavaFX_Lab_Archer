@@ -62,6 +62,7 @@ public class SocketServerWrapper {
     public void sendResponse(Response response) {
         try {
             String responseStr = gson.toJson(response);
+            System.out.println("Response: " + response.getArchers());
             dos.writeUTF(responseStr);
         } catch (Exception e) {
             System.err.println("Error in SocketServerWrapper sendResponse: " + e.getMessage());
@@ -89,6 +90,7 @@ public class SocketServerWrapper {
                 sendResponse(response);
                 break;
             case START:
+
                 model.getArcher(this.getId()).setReady(true);
                 for (Archer archer : model.getArchers()) {
                     if (!archer.isReady()) {

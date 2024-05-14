@@ -99,7 +99,7 @@ public class Game {
     // Выстрел
     public void Shot(int index) {
         if (model.getGameStatus() != GameStatus.Started) return;
-        synchronized (model.getArchers()){
+        synchronized (threadManager){
             model.getArcher(index).getScore().setShotCount(model.getArcher(index).getScore().getShotCount() + 1);
         }
 
@@ -108,7 +108,7 @@ public class Game {
 //        if (model.getArcher(index) != null)
 //            y_arrow = model.getArcher(index).getLayoutY();
         Arrow arrow = new Arrow(ARROW_LENGTH, y_arrow, model.getArcher(0).getLayoutY(), "black");
-        synchronized (model.getArcher(index).getArrows()) {
+        synchronized (threadManager) {
             model.getArcher(index).addArrow(arrow);
         }
     }
@@ -131,16 +131,16 @@ public class Game {
                 if (arrow.getArrowShaft().getStartX() > model.getMainFieldSize().getX())
                     arrowsToRemove.add(arrow);
 
-                if (archer.getScore().getPoints() >= 2) {
-                    System.out.println(socketServer.getId() + " win");
+                if (archer.getScore().getPoints() >= 1) {
+                    System.out.println(socketServer.getId() + ", " + archer.getNickName() + " win");
 //                    synchronized (archer.getArrows()) {
 //                        archer.getArrows().removeAll(arrowsToRemove);
 //                    }
-                    synchronized (threadManager) {
+//                    synchronized (threadManager) {
                         StopGame();
-                    }
+//                    }
                     model.setWinner(socketServer.getId());
-//                    model.setWinner(0);
+
                     return;
                 }
             }

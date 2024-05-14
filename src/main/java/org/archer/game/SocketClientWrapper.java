@@ -1,6 +1,8 @@
 package org.archer.game;
 
 import com.google.gson.Gson;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import org.archer.elements.Archer;
 import org.archer.elements.BModel;
 import org.archer.elements.Model;
@@ -19,6 +21,7 @@ public class SocketClientWrapper {
     OutputStream os;
     DataInputStream dis;
     DataOutputStream dos;
+    MessageQueue messageQueue = new MessageQueue();
 
     boolean isRunning = false;
 
@@ -43,25 +46,56 @@ public class SocketClientWrapper {
 
     private void run() {
         while (true) {
+            synchronized (model) {
             Response response = receiveResponse();
             if (response == null) {
                 break;
             }
-            model.setArchers(response.getArchers());
-//            model.getArchers().forEach(archer -> System.out.println(archer.getArrows().toString()));
-            model.setTargets(response.getTargets());
+
+                model.setArchers(response.getArchers());
+                model.setTargets(response.getTargets());
+                for (Archer archer : model.getArchers()) {
+                    System.out.println(archer);
+                }
+                model.notifyObservers();
+            }
+//            model.setArchers(response.getArchers());
+//            model.setTargets(response.getTargets());
+//            for (Archer archer : model.getArchers()) {
+////
+//                System.out.println("Archer: " + archer.isWinner());
+//            }
+////            synchronized (model) {
+//                model.notifyObservers();
+////            }
         }
+    }
+    public void ShowWinner(String nickName) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText(null);
+        alert.setContentText("Winner: " + nickName);
+
+        alert.showAndWait();
     }
 
     public Response receiveResponse() {
         try {
             String responseStr = dis.readUTF();
-            return gson.fromJson(responseStr, Response.class);
+            Response response = gson.fromJson(responseStr, Response.class);
+            messageQueue.addResponse(response); // добавляем полученный ответ в очередь
+//            System.out.println("Response: " + response.getArchers());
+            return response;
         } catch (Exception e) {
             System.err.println("Error in SocketClientWrapper receiveMessage: " + e.getMessage());
             return null;
         }
     }
+
+    public MessageQueue getMessageQueue() {
+        return messageQueue;
+    }
+
     public void sendMessage(Message message) {
         try {
             String messageStr = gson.toJson(message);

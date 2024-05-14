@@ -5,6 +5,8 @@ import org.archer.game.Game;
 import org.archer.game.SocketServerWrapper;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,17 +36,34 @@ public class Model {
         observers.remove(observer);
     }
     public void notifyObservers() {
-        for (IObserver observer : observers) {
-            observer.eventHandler(this);
+        synchronized (this) {
+            for (IObserver observer : observers) {
+                observer.eventHandler(this);
+            }
         }
+
+//        boolean wasModified;
+//        do {
+//            wasModified = false;
+//            Iterator<IObserver> iterator = observers.iterator();
+//            while (iterator.hasNext()) {
+//                IObserver observer = iterator.next();
+//                try {
+//                    observer.eventHandler(this);
+//                } catch (ConcurrentModificationException e) {
+//                    wasModified = true;
+//                    break;
+//                }
+//            }
+//        } while (wasModified);
     }
     public void setArchers(ArrayList<Archer> archers) {
         dao.setArchers(archers);
-        notifyObservers();
+//        notifyObservers();
     }
     public void setTargets(Targets targets) {
         dao.setTargets(targets);
-        notifyObservers();
+//        notifyObservers();
     }
     public void setScore(Score score, int index) {
         dao.getArcher(index).setScore(score);
@@ -52,7 +71,8 @@ public class Model {
     }
     public void setGameStatus(GameStatus gameStatus) {
         dao.setGameStatus(gameStatus);
-        notifyObservers();
+//        Только что убрал оповещение наблюдателей из этого метода
+//        notifyObservers();
     }
 
     public GameStatus getGameStatus() {
@@ -109,7 +129,8 @@ public class Model {
     }
     public void setWinner(int winner) {
         getArcher(winner).setWinner(true);
-        notifyObservers();
+//        notifyObservers();
+//        getArcher(winner).setWinner(false);
     }
     public void cleanup() {
         dao.cleanup();

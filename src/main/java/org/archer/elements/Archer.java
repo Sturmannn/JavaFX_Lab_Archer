@@ -130,6 +130,9 @@ public class Archer {
                 "arrows=" + arrows +
                 ", score=" + score +
                 ", archer=" + archer +
+                ", nickName='" + nickName + '\'' +
+                ", isReady=" + isReady +
+                ", isWinner=" + isWinner +
                 '}';
     }
 }
