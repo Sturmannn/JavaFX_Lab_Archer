@@ -1,10 +1,10 @@
 package org.archer.elements;
 
 public class MyPair {
-    private double x;
-    private double y;
+    private final double x;
+    private final double y;
 
-    public MyPair(double x, double y) {
+    public MyPair(final double x, final double y) {
         this.x = x;
         this.y = y;
     }
@@ -15,14 +15,6 @@ public class MyPair {
 
     public double getY() {
         return y;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public void setY(double y) {
-        this.y = y;
     }
 
     @Override

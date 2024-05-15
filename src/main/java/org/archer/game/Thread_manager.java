@@ -2,22 +2,22 @@ package org.archer.game;
 
 public class Thread_manager {
 
-    boolean signal = false;
+    private boolean signal = false;
     public void do_wait() {
-        synchronized(this){
+        synchronized(this) {
             try {
-                while (!signal){
+                while (!signal) {
                     this.wait();
                 }
                 signal = false;
-            } catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void do_notify(){
-        synchronized (this){
+    public void do_notify() {
+        synchronized(this) {
             signal = true;
             this.notify();
         }

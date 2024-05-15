@@ -15,7 +15,7 @@ public class ConnectController {
     TextField nicknameField;
 
     public GameController gameController = null;
-    public Parent root = null;
+    public Parent root;
 
     @FXML
     private void initialize() {
@@ -33,54 +33,43 @@ public class ConnectController {
 
     @FXML
     public void connect() {
-//        try {
-            // Загрузка main-view
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/archer/main-view.fxml"));
-//            Parent root = loader.load();
+        if (nicknameField.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Warning Dialog");
+            alert.setHeaderText(null);
+            alert.setContentText("Nickname field is empty. Please enter a nickname.");
 
-            // Получение контроллера и установка nickname
-//            GameController gameController = loader.getController();
-            if (nicknameField.getText().isEmpty()) {
+            alert.showAndWait();
+        } else {
+            gameController.setNickname(nicknameField.getText());
+            // 0 - error, 1 - nickname is taken, 2 - connected, 3 - overflown
+            int result = gameController.connect();
+            if (result == 0) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText(null);
+                alert.setContentText("Error connecting to the server. Please try again.");
+
+                alert.showAndWait();
+            } else if (result == 1) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Warning Dialog");
                 alert.setHeaderText(null);
-                alert.setContentText("Nickname field is empty. Please enter a nickname.");
+                alert.setContentText("Nickname is taken. Please enter a different nickname.");
 
                 alert.showAndWait();
+            } else if (result == 3) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning Dialog");
+                alert.setHeaderText(null);
+                alert.setContentText("Server is full. Please try again later.");
+
+                alert.showAndWait();
+            } else {
+                Stage stage = (Stage) nicknameField.getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.setResizable(false);
             }
-            else {
-                gameController.setNickname(nicknameField.getText());
-                // 0 - error, 1 - nickname is taken, 2 - connected, 3 - overflown
-                int result = gameController.connect();
-                if (result == 0) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error Dialog");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Error connecting to the server. Please try again.");
-
-                    alert.showAndWait();
-                } else if (result == 1) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Warning Dialog");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Nickname is taken. Please enter a different nickname.");
-
-                    alert.showAndWait();
-                } else if (result == 3) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Warning Dialog");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Server is full. Please try again later.");
-
-                    alert.showAndWait();
-                } else {
-                    Stage stage = (Stage) nicknameField.getScene().getWindow();
-                    stage.setScene(new Scene(root));
-                    stage.setResizable(false);
-                }
-            }
-//        } catch (IOException e) {
-//            System.err.println("Error in ConnectController.connect: " + e.getMessage());
-//        }
+        }
     }
 }

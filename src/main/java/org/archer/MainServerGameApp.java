@@ -11,8 +11,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class MainServerGameApp {
-    Model model = BModel.getModel();
-    int port = 3124;
+    final Model model = BModel.getModel();
+    final int port = 3124;
     InetAddress ip = null;
 
     public void StartServer() {
@@ -25,11 +25,10 @@ public class MainServerGameApp {
             while (true) {
                 client_socket = server_socket.accept();
                 SocketServerWrapper socketServerWrapper = new SocketServerWrapper(client_socket);
-                System.out.println("Client " + socketServerWrapper.getId() + " connected: " + client_socket.getInetAddress().getHostAddress());
-                model.addClient(socketServerWrapper, socketServerWrapper.getId());
+                System.out.println("Client " + model.getArchers().size() + " connected: " + client_socket.getInetAddress().getHostAddress());
                 model.addObserver((observer) -> {
-                    Response response = new Response(model.getArchers(), model.getTargets());
-                    socketServerWrapper.sendResponse(response);
+                        Response response = new Response(model.getArchers(), model.getTargets());
+                socketServerWrapper.sendResponse(response);
                 });
             }
         } catch (IOException e) {

@@ -1,26 +1,21 @@
 package org.archer.game;
 
-import javafx.scene.layout.AnchorPane;
 import org.archer.elements.Archer;
-import org.archer.elements.GameStatus;
-import org.archer.elements.MyPair;
 import org.archer.elements.Targets;
 
-import java.util.ArrayList;
+import java.util.Map;
 
 public class Response {
-    private ArrayList<Archer> archers;
-//    private MyPair mainFieldSize;
-    private Targets targets;
+    private final Map < String, Archer > archers;
+    private final Targets targets;
+    private Archer winner = null;
 
-    Archer winner = null;
-
-    public Response(ArrayList<Archer> archers, Targets targets) {
+    public Response(final Map < String, Archer > archers, final Targets targets) {
         this.archers = archers;
         this.targets = targets;
     }
 
-    public ArrayList<Archer> getArchers() {
+    public Map < String, Archer > getArchers() {
         return archers;
     }
 
@@ -32,7 +27,7 @@ public class Response {
         return winner;
     }
 
-    public void setWinner(Archer winner) {
+    public void setWinner(final Archer winner) {
         this.winner = winner;
     }
 

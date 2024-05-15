@@ -4,14 +4,14 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 public class Serializable_Circle {
-    private double centerX;
-    private double centerY;
-    private double radius;
-    private String fill;
+    private final double centerX;
+    private final double centerY;
+    private final double radius;
+    private final String fill;
     private double layoutX;
     private double layoutY;
 
-    public Serializable_Circle(double centerX, double centerY, double radius, double layoutX, double layoutY, String fill) {
+    public Serializable_Circle(final double centerX, final double centerY, final double radius, final double layoutX, final double layoutY, final String fill) {
         this.centerX = centerX;
         this.centerY = centerY;
         this.radius = radius;
@@ -19,7 +19,7 @@ public class Serializable_Circle {
         this.layoutY = layoutY;
         this.fill = fill;
     }
-    public Serializable_Circle(Circle circle) {
+    public Serializable_Circle(final Circle circle) {
         this.centerX = circle.getCenterX();
         this.centerY = circle.getCenterY();
         this.radius = circle.getRadius();
@@ -27,27 +27,16 @@ public class Serializable_Circle {
         this.layoutX = circle.getLayoutX();
         this.layoutY = circle.getLayoutY();
     }
-    public double getCenterX() {
-        return centerX;
-    }
-
-    public double getCenterY() {
-        return centerY;
-    }
 
     public double getRadius() {
         return radius;
-    }
-
-    public String getFill() {
-        return fill;
     }
 
     public double getLayoutX() {
         return layoutX;
     }
 
-    public void setLayoutX(double layoutX) {
+    public void setLayoutX(final double layoutX) {
         this.layoutX = layoutX;
     }
 
@@ -55,7 +44,7 @@ public class Serializable_Circle {
         return layoutY;
     }
 
-    public void setLayoutY(double layoutY) {
+    public void setLayoutY(final double layoutY) {
         this.layoutY = layoutY;
     }
     public Circle toCircleFX() {

@@ -1,9 +1,7 @@
 package org.archer.elements;
 
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-import javafx.util.Pair;
 
 import java.util.Arrays;
 
@@ -22,13 +20,9 @@ public class Targets {
             false // up
     };
 
-    public Targets(MyPair mainFieldSize) {
+    public Targets(final MyPair mainFieldSize) {
         double nearTargetDistance = 300;
         double distantTargetDistance = 400;
-//        nearTargetLine = new Serializable_Line(0, 0, 0, mainFieldSize.getY(), "black");
-//        distantTargetLine = new Serializable_Line(0, 0, 0, mainFieldSize.getY(), "black");
-//        nearTargetCircle = new Serializable_Circle(nearTargetDistance, mainFieldSize.getY() / 2, 30, "blue");
-//        distantTargetCircle = new Serializable_Circle(distantTargetDistance, mainFieldSize.getY() / 2, 15, "red");
 
         nearTargetLine = new Serializable_Line(0, 0, 0, mainFieldSize.getY(), "black");
         distantTargetLine = new Serializable_Line(0, 0, 0, mainFieldSize.getY(), "black");
@@ -37,28 +31,15 @@ public class Targets {
 
         nearTargetLine.setLayoutX(nearTargetDistance);
         distantTargetLine.setLayoutX(distantTargetDistance);
-
-//        nearTargetCircle.setLayoutX(nearTargetDistance);
-//        distantTargetCircle.setLayoutX(distantTargetDistance);
-//        nearTargetCircle.setLayoutY(mainFieldSize.getY() / 2);
-//        distantTargetCircle.setLayoutY(mainFieldSize.getY() / 2 );
-
-
-//        nearTargetCircle.setLayoutY(0);
-//        distantTargetCircle.setLayoutY(0);
-
-//        System.out.println(nearTargetCircle.toString());
-//        System.out.println(nearTargetLine.toString());
     }
 
-    public Targets(Serializable_Circle nearTargetCircle, Serializable_Circle distantTargetCircle, Serializable_Line nearTargetLine, Serializable_Line distantTargetLine)
-    {
+    public Targets(final Serializable_Circle nearTargetCircle, final Serializable_Circle distantTargetCircle, final Serializable_Line nearTargetLine, final Serializable_Line distantTargetLine) {
         this.nearTargetCircle = nearTargetCircle;
         this.distantTargetCircle = distantTargetCircle;
         this.nearTargetLine = nearTargetLine;
         this.distantTargetLine = distantTargetLine;
     }
-    public Targets(Circle nearTargetCircle, Circle distantTargetCircle, javafx.scene.shape.Line nearTargetLine, javafx.scene.shape.Line distantTargetLine) {
+    public Targets(final Circle nearTargetCircle, final Circle distantTargetCircle, final Line nearTargetLine, final Line distantTargetLine) {
         this.nearTargetCircle = new Serializable_Circle(nearTargetCircle);
         this.distantTargetCircle = new Serializable_Circle(distantTargetCircle);
         this.nearTargetLine = new Serializable_Line(nearTargetLine);
@@ -66,7 +47,6 @@ public class Targets {
     }
 
     public void moving() {
-        // Условие движения ближней мишени
         if (nearCircleDirection[0] == true && nearTargetCircle.getLayoutY() + nearTargetCircle.getRadius() < nearTargetLine.getEndY())
             nearTargetCircle.setLayoutY(nearTargetCircle.getLayoutY() + NEAR_TARGET_SPEED);
         else {
@@ -76,7 +56,6 @@ public class Targets {
                 nearCircleDirection[0] = true;
         }
 
-        // Условие движения дальней мишени
         if (distantCircleDirection[0] == true && distantTargetCircle.getLayoutY() + distantTargetCircle.getRadius() < distantTargetLine.getEndY())
             distantTargetCircle.setLayoutY(distantTargetCircle.getLayoutY() + DISTANT_TARGET_SPEED);
         else {

@@ -1,36 +1,22 @@
 package org.archer.game;
 
-import javafx.scene.layout.AnchorPane;
 import org.archer.elements.Archer;
 import org.archer.elements.GameStatus;
 import org.archer.elements.MyPair;
 import org.archer.elements.Targets;
 
-import java.util.ArrayList;
-
 public class Message {
-//    private ArrayList<Archer> archers;
-    private Archer archer;
+    private final Archer archer;
     private MyPair mainFieldSize;
     private Targets targets;
     private GameStatus gameStatus;
-    private MessageAction action;
+    private final MessageAction action;
 
-//    public Message(ArrayList<Archer> archers, MyPair mainFieldSize, Targets targets, GameStatus gameStatus, MessageAction action) {
-//        this.archers = archers;
-//        this.mainFieldSize = mainFieldSize;
-//        this.targets = targets;
-//        this.gameStatus = gameStatus;
-//        this.action = action;
-//    }
-    public Message(Archer archer, MessageAction action) {
+    public Message(final Archer archer, final MessageAction action) {
         this.archer = archer;
         this.action = action;
     }
 
-//    public ArrayList<Archer> getArchers() {
-//        return archers;
-//    }
     public MyPair getMainFieldSize() {
         return mainFieldSize;
     }

@@ -3,56 +3,45 @@ package org.archer.elements;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Serializable_Polygon {
-    private List<Double> points;
-    private String fill = "black";
+    private final List < Double > points;
+    private String fill;
     private String stroke = "black";
     private double layoutX;
     private double layoutY;
 
-//    public Serializable_Polygon() {}
-
-    public Serializable_Polygon(List<Double> points, String fill) {
+    public Serializable_Polygon(final List < Double > points, final String fill) {
         this.points = points;
         this.fill = fill;
     }
-    public Serializable_Polygon(List<Double> points, Color fill) {
+    public Serializable_Polygon(final List < Double > points, final Color fill) {
         this.points = points;
         this.fill = fill.toString();
     }
-    public Serializable_Polygon(Polygon polygon) {
+    public Serializable_Polygon(final Polygon polygon) {
         this.points = polygon.getPoints();
         this.fill = polygon.getFill().toString();
         this.stroke = polygon.getStroke().toString();
         this.layoutX = polygon.getLayoutX();
         this.layoutY = polygon.getLayoutY();
     }
-    public List<Double> getPoints() {
+    public List < Double > getPoints() {
         return points;
     }
 
     public String getFill() {
         return fill;
     }
-    public void setFill(Color fill) {
-        this.fill = fill.toString();
-    }
     public String getStroke() {
         return stroke;
     }
-    public void setStroke(Color stroke) {
-        this.stroke = stroke.toString();
-    }
-
     public double getLayoutX() {
         return layoutX;
     }
 
-    public void setLayoutX(double layoutX) {
+    public void setLayoutX(final double layoutX) {
         this.layoutX = layoutX;
     }
 
@@ -60,7 +49,7 @@ public class Serializable_Polygon {
         return layoutY;
     }
 
-    public void setLayoutY(double layoutY) {
+    public void setLayoutY(final double layoutY) {
         this.layoutY = layoutY;
     }
 
@@ -74,7 +63,7 @@ public class Serializable_Polygon {
         return polygon;
     }
 
-    public void setColor(Color color) {
+    public void setColor(final Color color) {
         fill = color.toString();
         stroke = color.toString();
     }

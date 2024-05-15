@@ -5,28 +5,26 @@ import javafx.scene.shape.Line;
 
 public class Serializable_Line {
     private double startX;
-    private double startY;
+    private final double startY;
     private double endX;
-    private double endY;
-    private String stroke;
+    private final double endY;
+    private final String stroke;
     private double layoutX;
     private double layoutY;
 
-    public Serializable_Line(double startX, double startY, double endX, double endY, String stroke) {
+    public Serializable_Line(final double startX, final double startY, final double endX, final double endY, final String stroke) {
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
         this.stroke = stroke;
     }
-    public Serializable_Line(Line line) {
+    public Serializable_Line(final Line line) {
         this.startX = line.getStartX();
         this.startY = line.getStartY();
         this.endX = line.getEndX();
         this.endY = line.getEndY();
         this.stroke = line.getStroke().toString();
-//        this.layoutX = line.getLayoutX();
-//        this.layoutY = line.getLayoutY();
     }
 
     public double getStartX() {
@@ -37,50 +35,28 @@ public class Serializable_Line {
         return startY;
     }
 
-    public void setStartX(double startX) {
+    public void setStartX(final double startX) {
         this.startX = startX;
-    }
-
-    public void setStartY(double startY) {
-        this.startY = startY;
-    }
-
-    public void setEndY(double endY) {
-        this.endY = endY;
     }
 
     public double getEndX() {
         return endX;
     }
-    public void setEndX(double endX) {
+    public void setEndX(final double endX) {
         this.endX = endX;
     }
     public double getEndY() {
         return endY;
     }
 
-    public String getStroke() {
-        return stroke;
-    }
-    public void setStroke(String stroke) {
-        this.stroke = stroke;
-    }
-
     public double getLayoutX() {
         return layoutX;
     }
 
-    public void setLayoutX(double layoutX) {
+    public void setLayoutX(final double layoutX) {
         this.layoutX = layoutX;
     }
 
-    public double getLayoutY() {
-        return layoutY;
-    }
-
-    public void setLayoutY(double layoutY) {
-        this.layoutY = layoutY;
-    }
     public Line toLineFX() {
         Line line = new Line(startX, startY, endX, endY);
         line.setStroke(Paint.valueOf(stroke));

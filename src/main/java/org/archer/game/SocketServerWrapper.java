@@ -5,84 +5,83 @@ import org.archer.elements.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SocketServerWrapper {
-    Model model = BModel.getModel();
-    static final AtomicInteger idGenerator = new AtomicInteger(0);
-    int id;
-    Game game = new Game(model, this);
-    Gson gson = new Gson();
-    Socket cs;
-    InputStream is;
-    OutputStream os;
-    DataInputStream dis;
-    DataOutputStream dos;
+    private final Model model = BModel.getModel();
+    private final Game game = new Game(model);
+    private final Gson gson = new Gson();
+    private final Socket cs;
+    private final DataInputStream dis;
+    private final DataOutputStream dos;
 
-    public SocketServerWrapper(Socket client_socket) {
+    public SocketServerWrapper(final Socket client_socket) {
         this.cs = client_socket;
+        DataInputStream tempDis;
+        DataOutputStream tempDos;
         try {
-            is = cs.getInputStream();
-            os = cs.getOutputStream();
-            dis = new DataInputStream(is);
-            dos = new DataOutputStream(os);
-            id = idGenerator.getAndIncrement();
-        } catch (Exception e) {
+            tempDis = new DataInputStream(cs.getInputStream());
+            tempDos = new DataOutputStream(cs.getOutputStream());
+        } catch (IOException e) {
             System.err.println("Error in SocketServerWrapper constructor: " + e.getMessage());
+            closeConnection();
+            throw new RuntimeException(e);
         }
+        dis = tempDis;
+        dos = tempDos;
         new Thread(this::run).start();
     }
 
     private void run() {
         while (true) {
-            Message message = receiveMessage();
-            if (message == null) {
-                model.removeClient(this);
+            try {
+                Message message = receiveMessage();
+                if (message == null) {
+                    break;
+                }
+                handleMessageAction(message);
+            } catch (Exception e) {
+                System.err.println("Error in SocketServerWrapper run: " + e.getMessage());
+                closeConnection();
                 break;
             }
-            handleMessageAction(message);
         }
     }
-    public int getId() {
-        return id;
-    }
+
     public Message receiveMessage() {
         try {
             String messageStr = dis.readUTF();
             return gson.fromJson(messageStr, Message.class);
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println("Error in SocketServerWrapper receiveMessage: " + e.getMessage());
+            closeConnection();
             return null;
         }
     }
-    public void sendResponse(Response response) {
+
+    public void sendResponse(final Response response) {
         try {
             String responseStr = gson.toJson(response);
-            System.out.println("Response: " + response.getArchers());
             dos.writeUTF(responseStr);
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println("Error in SocketServerWrapper sendResponse: " + e.getMessage());
-            model.removeClient(this);
             model.removeObserver((observer) -> {
-                Response resp = new Response(model.getArchers(), model.getTargets());
-                sendResponse(resp);
+                    Response resp = new Response(model.getArchers(), model.getTargets());
+            sendResponse(resp);
             });
             closeConnection();
         }
     }
-    public void handleMessageAction(Message message) {
-        MessageAction action = message.getAction();
+
+    public void handleMessageAction(final Message message) {
+        final MessageAction action = message.getAction();
 
         switch (action) {
             case CONNECT:
-                model.addClient(this, this.getId());
                 Archer newArcher = new Archer(40, 170, message.getArcher().getNickName());
-                newArcher.setColor(PlayerColors.getColor(this.getId()));
-                model.getArchers().add(newArcher);
+                newArcher.setColor(PlayerColors.getColor(model.getArchers().size()));
+                model.getArchers().put(newArcher.getNickName(), newArcher);
                 model.notifyObservers();
                 break;
             case NICKNAME_CHECK:
@@ -90,9 +89,8 @@ public class SocketServerWrapper {
                 sendResponse(response);
                 break;
             case START:
-
-                model.getArcher(this.getId()).setReady(true);
-                for (Archer archer : model.getArchers()) {
+                model.getArcher(message.getArcher().getNickName()).setReady(true);
+                for (Archer archer: model.getArchers().values()) {
                     if (!archer.isReady()) {
                         return;
                     }
@@ -100,7 +98,7 @@ public class SocketServerWrapper {
                 game.StartGame();
                 break;
             case SHOOT:
-                game.Shot(this.getId());
+                game.Shot(message.getArcher().getNickName());
                 break;
             case PAUSE:
                 game.Pause();
@@ -109,13 +107,14 @@ public class SocketServerWrapper {
                 game.StopGame();
                 break;
             case CHANGE_POSITION:
-                game.ShooterChangePosition(message.getArcher(), this.getId());
+                game.ShooterChangePosition(message.getArcher(), message.getArcher().getNickName());
                 break;
             default:
                 System.err.println("Unknown action: " + action);
                 break;
         }
     }
+
     private void closeConnection() {
         try {
             if (dis != null) {

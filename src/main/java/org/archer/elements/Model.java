@@ -1,139 +1,50 @@
 package org.archer.elements;
 
-import javafx.scene.control.Label;
-import org.archer.game.Game;
-import org.archer.game.SocketServerWrapper;
-
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Model {
     private final DAO dao = new DAO();
-    public ArrayList<IObserver> observers = new ArrayList<>();
-    int winner = -1;
+    public ArrayList < IObserver > observers = new ArrayList < > ();
 
-    private Map<SocketServerWrapper, Integer> clients = new ConcurrentHashMap<>();
-
-    public void addObserver(IObserver observer) {
+    public void addObserver(final IObserver observer) {
         observers.add(observer);
     }
-
-    public void addClient(SocketServerWrapper client, int id) {
-        clients.put(client, id);
-    }
-
-    public void removeClient(SocketServerWrapper client) {
-        System.out.println(observers + " " + observers.size());
-        clients.remove(client);
-        observers.remove(0);
-        getArchers().remove(0);
-    }
-
-    public void removeObserver(IObserver observer) {
+    public void removeObserver(final IObserver observer) {
         observers.remove(observer);
     }
     public void notifyObservers() {
-        synchronized (this) {
-            for (IObserver observer : observers) {
+        synchronized(this) {
+            for (IObserver observer: observers) {
                 observer.eventHandler(this);
             }
         }
-
-//        boolean wasModified;
-//        do {
-//            wasModified = false;
-//            Iterator<IObserver> iterator = observers.iterator();
-//            while (iterator.hasNext()) {
-//                IObserver observer = iterator.next();
-//                try {
-//                    observer.eventHandler(this);
-//                } catch (ConcurrentModificationException e) {
-//                    wasModified = true;
-//                    break;
-//                }
-//            }
-//        } while (wasModified);
     }
-    public void setArchers(ArrayList<Archer> archers) {
+    public void setArchers(final Map < String, Archer > archers) {
         dao.setArchers(archers);
-//        notifyObservers();
     }
-    public void setTargets(Targets targets) {
+    public void setTargets(final Targets targets) {
         dao.setTargets(targets);
-//        notifyObservers();
     }
-    public void setScore(Score score, int index) {
-        dao.getArcher(index).setScore(score);
-        notifyObservers();
-    }
-    public void setGameStatus(GameStatus gameStatus) {
+    public void setGameStatus(final GameStatus gameStatus) {
         dao.setGameStatus(gameStatus);
-//        Только что убрал оповещение наблюдателей из этого метода
-//        notifyObservers();
     }
-
     public GameStatus getGameStatus() {
         return dao.getGameStatus();
     }
-    public Score getScore(int index) {
-        return dao.getArcher(index).getScore();
-    }
-
     public Targets getTargets() {
         return dao.getTargets();
     }
-    public ArrayList<Archer> getArchers() {
+    public Map < String, Archer > getArchers() {
         return dao.getArchers();
     }
-    public Archer getArcher(int index) {
-        return dao.getArcher(index);
-    }
-    public void resetScore(int index) {
-        dao.getArcher(index).resetScore();
-        notifyObservers();
-    }
-    public int getPoints(int index) {
-        return dao.getArcher(index).getScore().getPoints();
-    }
-    public int getShotCount(int index) {
-        return dao.getArcher(index).getScore().getShotCount();
-    }
-//    public void setPointsLabel(Label pointsLabel, int index) {
-//        dao.getArcher(index).getScore().setPointsLabel(pointsLabel);
-//        notifyObservers();
-//    }
-    public void setPoints(int points, int index) {
-        dao.getArcher(index).getScore().setPoints(points);
-        notifyObservers();
-    }
-//    public void setShotCountLabel(Label shotCountLabel, int index) {
-//        dao.getArcher(index).getScore().setShotCountLabel(shotCountLabel);
-//        notifyObservers();
-//    }
-    public void setShotCount(int shotCount, int index) {
-        dao.getArcher(index).getScore().setShotCount(shotCount);
-        notifyObservers();
+    public Archer getArcher(final String nickName) {
+        return dao.getArcher(nickName);
     }
     public MyPair getMainFieldSize() {
         return dao.getMainFieldSize();
     }
-    public void setMainFieldSize(MyPair mainField) {
-        dao.setMainFieldSize(mainField);
-        notifyObservers();
-    }
-    public int getWinner() {
-        return winner;
-    }
-    public void setWinner(int winner) {
-        getArcher(winner).setWinner(true);
-//        notifyObservers();
-//        getArcher(winner).setWinner(false);
-    }
-    public void cleanup() {
-        dao.cleanup();
-        notifyObservers();
+    public void setWinner(final String nickName) {
+        getArcher(nickName).setWinner(true);
     }
 }

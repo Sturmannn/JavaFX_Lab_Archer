@@ -8,18 +8,13 @@ public enum PlayerColors {
     DarkPurple,
     DarkBrown;
 
-    public static Color getColor(int index) {
-        switch (index) {
-            case 0:
-                return Color.BLACK;
-            case 1:
-                return Color.DARKBLUE;
-            case 2:
-                return Color.DARKMAGENTA;
-            case 3:
-                return Color.SADDLEBROWN;
-            default:
-                return Color.BLACK;
-        }
+    public static Color getColor(final int index) {
+        return switch (index) {
+            case 0 -> Color.BLACK;
+            case 1 -> Color.DARKGREEN;
+            case 2 -> Color.DARKMAGENTA;
+            case 3 -> Color.SADDLEBROWN;
+            default -> Color.BLACK;
+        };
     }
 }
