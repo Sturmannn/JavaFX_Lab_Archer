@@ -1,10 +1,15 @@
 package org.archer.elements;
 
+import org.archer.db.ArcherDB;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Model {
     private final DAO dao = new DAO();
+    private final DAO_HIBERNATE dao_hibernate = new DAO_HIBERNATE();
+
     public ArrayList < IObserver > observers = new ArrayList < > ();
 
     public void addObserver(final IObserver observer) {
@@ -46,5 +51,20 @@ public class Model {
     }
     public void setWinner(final String nickName) {
         getArcher(nickName).setWinner(true);
+        // Получите объект ArcherDB для этого игрока
+        ArcherDB archerDB = dao_hibernate.getPlayer(nickName);
+        if (archerDB != null) {
+            // Увеличьте количество побед
+            archerDB.setVictoryCount(archerDB.getVictoryCount() + 1);
+
+            // Обновите объект в базе данных
+            dao_hibernate.updatePlayer(archerDB);
+        }
+    }
+    public void addArcherDB(final ArcherDB archer) {
+        dao_hibernate.addPlayer(archer);
+    }
+    public List < ArcherDB > getArchersDB() {
+        return dao_hibernate.getAllPlayersFromDB();
     }
 }

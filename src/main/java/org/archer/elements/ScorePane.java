@@ -10,7 +10,7 @@ public class ScorePane {
     VBox scorePane;
     final String playerColor;
 
-    public ScorePane(final Label Nick, final Label points, final Label ShotCount, final String playerColor) {
+    public ScorePane(final Label Nick, final Label points, final Label ShotCount, final Label WinCount, final String playerColor) {
         this.playerColor = playerColor;
         Rectangle colorRect = new Rectangle(13, 13);
         colorRect.setFill(Color.web(playerColor));
@@ -20,6 +20,7 @@ public class ScorePane {
         this.scorePane.getChildren().add(hBox);
         this.scorePane.getChildren().add(points);
         this.scorePane.getChildren().add(ShotCount);
+        this.scorePane.getChildren().add(WinCount);
         scorePane.setStyle(
                 "-fx-padding: 10;" +
                 "-fx-border-style: solid inside;" +

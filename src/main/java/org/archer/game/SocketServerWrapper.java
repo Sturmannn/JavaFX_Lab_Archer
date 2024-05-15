@@ -1,6 +1,7 @@
 package org.archer.game;
 
 import com.google.gson.Gson;
+import org.archer.db.ArcherDB;
 import org.archer.elements.*;
 
 import java.io.DataInputStream;
@@ -62,13 +63,16 @@ public class SocketServerWrapper {
 
     public void sendResponse(final Response response) {
         try {
-            String responseStr = gson.toJson(response);
+            String responseStr;
+            synchronized (response) {
+                responseStr = gson.toJson(response);
+            }
             dos.writeUTF(responseStr);
         } catch (IOException e) {
             System.err.println("Error in SocketServerWrapper sendResponse: " + e.getMessage());
             model.removeObserver((observer) -> {
-                    Response resp = new Response(model.getArchers(), model.getTargets());
-            sendResponse(resp);
+                Response resp = new Response(model.getArchers(), model.getTargets());
+                sendResponse(resp);
             });
             closeConnection();
         }
@@ -80,8 +84,10 @@ public class SocketServerWrapper {
         switch (action) {
             case CONNECT:
                 Archer newArcher = new Archer(40, 170, message.getArcher().getNickName());
+                ArcherDB newArcherDB = new ArcherDB(newArcher.getNickName(), newArcher.getVictoryCount(model));
                 newArcher.setColor(PlayerColors.getColor(model.getArchers().size()));
                 model.getArchers().put(newArcher.getNickName(), newArcher);
+                model.addArcherDB(newArcherDB);
                 model.notifyObservers();
                 break;
             case NICKNAME_CHECK:

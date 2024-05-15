@@ -5,6 +5,10 @@ open module org.archer {
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
     requires com.google.gson;
+    requires org.hibernate.orm.core;
+    requires java.persistence;
+    requires java.naming;
+    requires java.sql;
 
 //    opens org.archer to javafx.fxml, com.google.gson;
 //    opens org.archer.game to com.google.gson;

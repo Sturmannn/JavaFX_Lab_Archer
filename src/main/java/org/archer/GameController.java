@@ -1,8 +1,14 @@
 package org.archer;
 
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
+import org.archer.db.ArcherDB;
 import org.archer.elements.*;
 import org.archer.game.*;
 import javafx.fxml.FXML;
@@ -12,6 +18,7 @@ import javafx.scene.layout.VBox;
 
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.List;
 
 public class GameController implements IObserver {
 
@@ -21,6 +28,7 @@ public class GameController implements IObserver {
     private AnchorPane mainField;
     @FXML
     private VBox scorePane;
+    private Stage leadersStage;
 
     final Model model = BModel.getModel();
     SocketClientWrapper socket_client = null;
@@ -62,6 +70,17 @@ public class GameController implements IObserver {
         if (socket_client != null) {
             Message msg = new Message(new Archer(0, 0, nickName), MessageAction.SHOOT);
             socket_client.sendMessage(msg);
+        }
+    }
+    @FXML
+    protected void onLeadersButtonClick() {
+        if (leadersStage != null) {
+            leadersStage.close();
+            leadersStage = null;
+        } else {
+            List<ArcherDB> leaders = model.getArchersDB();
+            leadersStage = createLeadersTable(leaders);
+            leadersStage.show();
         }
     }
 
@@ -127,6 +146,36 @@ public class GameController implements IObserver {
         }
     }
 
+    private Stage createLeadersTable(List<ArcherDB> leaders) {
+        // Создайте новую таблицу или очистите существующую
+        TableView<ArcherDB> table = new TableView<>();
+        table.getItems().clear();
+
+        // Создайте столбцы для таблицы
+        TableColumn<ArcherDB, String> nameColumn = new TableColumn<>("Player");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("nickName"));
+
+        TableColumn<ArcherDB, Integer> victories_num = new TableColumn<>("Victories_num");
+        victories_num.setCellValueFactory(new PropertyValueFactory<>("victoryCount"));
+
+        // Добавьте столбцы в таблицу
+        table.getColumns().add(nameColumn);
+        table.getColumns().add(victories_num);
+
+        // Добавьте данные в таблицу
+        table.getItems().addAll(leaders);
+
+        // Создаем новую сцену с таблицей
+        Scene scene = new Scene(table);
+
+        // Создаем новый Stage для отображения таблицы
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle("Leaders");
+
+        return stage;
+    }
+
     @Override
     public void eventHandler(Model model) {
         synchronized(model) {
@@ -141,7 +190,8 @@ public class GameController implements IObserver {
                 Label archerNick = new Label("Nick: " + archer.getNickName());
                 Label archerPoints = new Label("Points: " + archer.getScore().getPoints());
                 Label archerShotCount = new Label("Shot count: " + archer.getScore().getShotCount());
-                ScorePane archerScore = new ScorePane(archerNick, archerPoints, archerShotCount, archer.getColor());
+                Label archerVictories = new Label("Victories: " + archer.getVictoryCount(model));
+                ScorePane archerScore = new ScorePane(archerNick, archerPoints, archerShotCount, archerVictories, archer.getColor());
                 scorePane.getChildren().add(archerScore.getScorePane());
 
                 shooterPane.getChildren().add(archer.getArcherFX());
